@@ -10,15 +10,19 @@ const PatientSchema = new mongoose.Schema({
         required: true
     },
     age: {
-        type: Number,
+        type: Number
     },
     medicines: [{
         type: String
     }],
     email: {
         type: String,
-        required: true,
+        required: [true, "An email is required"],
         unique: true
+    },
+    covid_19: {
+        type: Boolean,
+        default: false
     },
     password: {
         type: String,
@@ -29,10 +33,18 @@ const PatientSchema = new mongoose.Schema({
     },
     address: {
         type: String,
+        required: true
     },
     mobile: {
-        type: Number,
-        required: true
+        type: String,
+        required: [true, "A number is required"],
+        validate: {
+            validator(v) {
+                let reg = /^[0-9]{10}$/;
+                return reg.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        }
     }
 }, {timestamps: true});
 

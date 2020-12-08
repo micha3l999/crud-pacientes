@@ -1,13 +1,19 @@
-const Patient = require('../models/Patient');
+const Patient = require('../models/patient/Patient');
+const RecordConfig = require('../models/record/config');
 const colors = require('colors');
 const bcrypt = require('bcrypt');
 
 async function confirmPassword(req, res, next) {
     try  {
-        if(req.body.password === req.body.c_password) {
-            return next();
-        } 
-        return res.status(400).send({ message: `Error, Asegurese de estar ingresando correctamente las credenciales` });
+        if (req.body.c_password) {
+            if(req.body.password === req.body.c_password) {
+                return next();
+            } else {
+                return res.status(400).send({ message: `Error: Asegurese de estar ingresando correctamente las credenciales` });
+            }
+        } else {
+            return res.status(400).send({ message: "DEBE DE CONFIRMAR LA CONTRASEÑA" });
+        }
     } catch(error) {
         console.error(error.red);
         return res.status(500).send({  error });
@@ -21,9 +27,26 @@ async function registerPatient(req, res) {
 
         req.body.password  = newPassword;
         delete req.body.c_password;
+        
 
-        const patientCreated = await new Patient(req.body).save();
-        return res.status(201).send({ patientCreated });
+        const patientCreated = new Patient(req.body);
+        if (req.body.symptoms) {
+            const symptoms = req.body.symptoms;
+            let firstValidation, secondValidation;
+            firstValidation = (symptoms.includes(RecordConfig.get("/SYMPTOMS", { SYMPTOM: "PERDIDA_DEL_OLFATO" }))) || 
+            (symptoms.includes(RecordConfig.get("/SYMPTOMS", { SYMPTOM: "PERDIDA_DEL_GUSTO" }))) || 
+            (symptoms.includes(RecordConfig.get("/SYMPTOMS", { SYMPTOM: "FIEBRE" })))
+
+            symptoms.length >= 2 ? secondValidation = true : secondValidation = false;
+            
+            if ( firstValidation || secondValidation) {
+                patientCreated.covid_19 = true;
+            }
+            await patientCreated.save();
+            return res.status(201).send({ patientCreated, message: "El paciente posiblemente tenga covid"});
+        }
+        
+        await patientCreated.save();
     } catch (error) {
         console.error(error.red);
         return res.status(500).send({ error });

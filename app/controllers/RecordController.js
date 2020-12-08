@@ -1,4 +1,4 @@
-const Record = require('../models/Record');
+const Record = require('../models/record/Record');
 
 async function createRecord(req, res) {
     try {
