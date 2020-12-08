@@ -29,7 +29,7 @@ Router.post('/', validate({
             RecordConfig.get("/SYMPTOMS", { SYMPTOM: "DOLOR_DE_GARGANTA" }),
             RecordConfig.get("/SYMPTOMS", { SYMPTOM: "INCAPACIDAD_PARA_HABLAR" }),
             RecordConfig.get("/SYMPTOMS", { SYMPTOM: "INCAPACIDAD_PARA_MOVERSE" })
-        )).required(),
+        )).optional(),
     })
 }), PatientController.confirmPassword, PatientController.registerPatient);
 
