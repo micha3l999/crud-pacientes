@@ -17,7 +17,7 @@ Router.post('/', validate({
         email: Joi.string().email().required(),
         password: Joi.string().required(),
         c_password: Joi.ref('password'),
-        address: Joi.string().required(),
+        address: Joi.string().optional(),
         mobile: Joi.string().required(),
         symptoms: Joi.array().items(Joi.string().valid(
             RecordConfig.get("/SYMPTOMS", { SYMPTOM: "FIEBRE" }),

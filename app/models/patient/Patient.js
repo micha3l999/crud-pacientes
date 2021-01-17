@@ -32,8 +32,7 @@ const PatientSchema = new mongoose.Schema({
         type: String,
     },
     address: {
-        type: String,
-        required: true
+        type: String
     },
     mobile: {
         type: String,
