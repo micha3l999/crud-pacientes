@@ -1,5 +1,5 @@
-const Record = require('../models/record/Record');
-const Patient = require('../models/patient/Patient');
+const Record = require('../../models/record/Record');
+const Patient = require('../../models/patient/Patient');
 
 async function createRecord(req, res) {
     try {

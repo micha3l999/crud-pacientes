@@ -20,7 +20,7 @@ const RecordSchema = new mongoose.Schema({
         },
         default: []
     }],
-    patient: { type: mongoose.Schema.ObjectId, ref: "Patient", required: true},
+    patient: { type: mongoose.Schema.ObjectId, ref: "User", required: true},
     covid_19ExamResult: {
         type: Boolean,
         required: true

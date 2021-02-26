@@ -1,7 +1,7 @@
 const express = require('express');
 const { validate, ValidationError, Joi } = require('express-validation');
 
-const PatientController = require('../controllers/PatientController');
+const PatientController = require('../controllers/users/PatientController');
 const RecordConfig = require('../models/record/config');
 
 const Router = express.Router();
@@ -35,7 +35,7 @@ Router.post('/', validate({
 
 Router.get('/:key/:value', PatientController.find, PatientController.showPatient);
 
-Router.put('/:key/:value', PatientController.find, PatientController.updatePatient);
+Router.put('/:key/:value', PatientController.updatePatient);
 
 Router.delete('/:key/:value', PatientController.find, PatientController.removePatient);
 

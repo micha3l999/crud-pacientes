@@ -1,7 +1,9 @@
-const Patient = require('../models/patient/Patient');
-const RecordConfig = require('../models/record/config');
+const Patient = require('../../models/patient/Patient');
+const User = require('../../models/user/User');
+const RecordConfig = require('../../models/record/config');
 const colors = require('colors');
 const bcrypt = require('bcrypt');
+const { populate } = require('../../models/patient/Patient');
 
 async function confirmPassword(req, res, next) {
     try  {
@@ -27,9 +29,12 @@ async function registerPatient(req, res) {
 
         req.body.password  = newPassword;
         delete req.body.c_password;
-        
 
+        // const copiedUser = JSON.parse(JSON.stringify(req.body));
+        const userCreated = new User(req.body);
         const patientCreated = new Patient(req.body);
+        userCreated.patientID = patientCreated._id;
+
         if (req.body.symptoms) {
             const symptoms = req.body.symptoms;
             let firstValidation, secondValidation;
@@ -43,10 +48,15 @@ async function registerPatient(req, res) {
                 patientCreated.covid_19 = true;
             }
             await patientCreated.save();
-            return res.status(201).send({ patientCreated, message: "El paciente posiblemente tenga covid"});
+            await userCreated.save();
+            return res.status(201).send({ patient: req.body, message: "El paciente posiblemente tenga covid"});
+        } else {
+            await patientCreated.save();
+            await userCreated.save();
+
+            return res.status(201).send({  patient: req.body, message: "El paciente posiblemente no tenga covid"});
         }
         
-        await patientCreated.save();
     } catch (error) {
         console.error(error.red);
         return res.status(500).send({ error });
@@ -55,8 +65,8 @@ async function registerPatient(req, res) {
 
 async function showAllPatients(req, res) {
     try {
-        const patients = await Patient.find({})
-        if ( patients.length ) return res.status(200).send({ patients });
+        const users = await User.find({})
+        if ( users.length ) return res.status(200).send({ users });
         return res.status(204).send({ message : `NO CONTENT` });
     } catch (error) {
         console.log(error.red);
@@ -71,11 +81,11 @@ async function showPatient(req, res) {
             console.error(error);
             return res.status(500).send({ error });
         }
-        if(!req.body.patient) return res.status(404).send({message: `Not found`});
+        if(!req.body.user) return res.status(404).send({message: `Not found`});
 
-        const patient = req.body.patient;
+        const user = req.body.user;
 
-        return res.status(200).send({patient});
+        return res.status(200).send({user});
 
     } catch(error) {
         console.error(error.red);
@@ -85,16 +95,52 @@ async function showPatient(req, res) {
 
 async function updatePatient(req, res) {
     try {
-        if(req.body.error) {
+        let query = {};
+        query[req.params.key] = req.params.value;
+
+        const user = User.findOne(query, { createdAt: 0, updatedAt: 0 });
+
+        console.log(req.body);
+        if(user) {
+            User.updateOne(query, req.body, {});
+        } else {
+            throw new Error("The user doesn't exist");
+        }
+
+
+        /* if(req.body.error) {
             const error = req.body.error;
             return res.status(500).send({ error });
         }
-        if(!req.body.patient) return res.status(404).send({message: 'Not found'});
+        if(!req.body.user) return res.status(404).send({message: 'Not found'});
 
-        let patient = req.body.patient;
-        patient = Object.assign(patient, req.body);
-        const patientUpdated = await patient.save();
-        return res.status(200).send({message: 'Updated', patientUpdated});
+        const user = req.body.user;
+        
+        if(user.patientID) {
+            const patient = JSON.parse(JSON.stringify(user.patientID));
+            console.log(patient);
+        } else {
+            throw new Error("There is no a patient of this user");
+        }
+
+        delete user.patientID;
+
+
+        const patientID = user.patientID._id;
+
+        delete req.body.user
+
+        let userToUpdate = JSON.parse(JSON.stringify(req.body))
+        userToUpdate.email = email;
+        // user = Object.assign({}, req.body);
+        console.log(userToUpdate);
+
+        const userUpdated = await userToUpdate.save();
+
+
+        // const patient = { ...user.patientID, ...req.body };
+        // await patient.save(); */
+        return res.status(200).send({message: 'Updated'}); 
 
     } catch(error) {
         console.error(error.red);
@@ -108,9 +154,11 @@ async function removePatient(req, res) {
             const error = req.body.error;
             return res.status(500).send({ error });
         }
-        if(!req.body.patient) return res.status(404).send({message: 'Not found'});
-
-        await req.body.patient.remove();
+        if(!req.body.user) return res.status(404).send({message: 'Not found'});
+        
+        const user = req.body.user;
+        await user.patientID.remove();
+        await user.remove();
         return res.status(200).send({message: 'Patient Removed'});
     } catch(error) {
         console.error(error.red);
@@ -122,11 +170,11 @@ async function find(req, res, next) {
     let query = {};
     try {
         query[req.params.key] = req.params.value;
-        const patient = await Patient.findOne(query);
+        const user = await User.findOne(query).populate('patientID');
 
-        if (!patient) return next();
+        if (!user) return next();
 
-        req.body.patient = patient;
+        req.body.user = user;
         return next();
 
     } catch(error) {
