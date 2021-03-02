@@ -56,8 +56,28 @@ async function deleteRecord(req, res) {
     }
 }
 
+async function deleteAllRecord(req, res) {
+    try {
+        const criteria  = {
+            patient: req.params._id
+        }
+        console.log("eliminando");
+        const recordsRemoved = await Record.deleteMany(criteria);
+        if(recordsRemoved) {
+            return res.status(200).send({message: `Records removed`, record: recordsRemoved });
+        } else {
+            return res.status(204).send({message: `Not found record to delete`});
+        }
+
+    } catch(error) {
+        console.error(error.red);
+        return res.status(500)
+    }
+}
+
 module.exports = {
     createRecord,
     showPatientRecord,
-    deleteRecord
+    deleteRecord,
+    deleteAllRecord
 }

@@ -9,4 +9,6 @@ Router.post('/', RecordController.createRecord);
 
 Router.delete('/:_id', RecordController.deleteRecord);
 
+Router.delete('/from/:_id', RecordController.deleteAllRecord);
+
 module.exports = Router;
