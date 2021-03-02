@@ -9,6 +9,11 @@ const record = require('./routes/record');
 App.use(bodyParser.json());
 App.use(bodyParser.urlencoded({extended : false}));
 
+App.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 
 App.use('/patient', patient);
 App.use('/record', record);
